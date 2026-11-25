@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BezProcentu.Api/BezProcentu.Api.csproj" />
+    <Project Path="src/BezProcentu.Collector/BezProcentu.Collector.csproj" />
+    <Project Path="src/BezProcentu.Core/BezProcentu.Core.csproj" />
+    <Project Path="src/BezProcentu.Data/BezProcentu.Data.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BezProcentu.Tests/BezProcentu.Tests.csproj" />
+  </Folder>
+</Solution>

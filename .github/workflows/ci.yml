@@ -1,0 +1,59 @@
+# DRAFT — review before relying on it. Builds and tests only; no secrets, no deployment.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: backend/global.json
+      - run: dotnet restore --locked-mode
+      - run: dotnet build --no-restore -c Release
+      # Integration tests start PostgreSQL 18 with Testcontainers (Docker is available on ubuntu-latest).
+      - run: dotnet test --no-build -c Release
+      - name: Vulnerable packages (SCA)
+        run: |
+          dotnet list package --vulnerable --include-transitive | tee vuln.txt
+          ! grep -qE "\b(Critical|High)\b" vuln.txt
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm audit --audit-level=high
+
+  containers:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target api -t bezprocentu-api:ci backend
+      - run: docker build --target collector -t bezprocentu-collector:ci backend
+      - run: docker build -t bezprocentu-web:ci frontend
+      # Container image vulnerability scanning (e.g. Trivy) is a next-phase item: choose and pin an approved scanner.
