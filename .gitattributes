@@ -1,0 +1,8 @@
+# Keep Unix line endings for files that run inside Linux containers (Windows checkouts would otherwise get CRLF
+# and e.g. the database init script fails with "$'\r': command not found").
+* text=auto
+*.sh text eol=lf
+Caddyfile text eol=lf
+Dockerfile text eol=lf
+*.yml text eol=lf
+*.png binary
